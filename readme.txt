@@ -4,7 +4,7 @@ Donate link: http://www.ljasinski.pl/donate
 Tags: widget, trakttv, tv shows, movies
 Requires at least: 2.0.2
 Tested up to: 3.7.1
-Stable tag: 1.2
+Stable tag: 1.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Author URI: http://www.ljasinski.pl
@@ -38,6 +38,11 @@ I know. As written in the changelog, that's known limitation of this version.
 2. Widget configuration
 
 == Changelog ==
+
+= 1.3 =
+
+* Caching now works with multiple widgets
+* Found bugs - can't display info for actions other than seen and scrobble - will be fixed as soon as possible
 
 = 1.2 = 
 

@@ -32,7 +32,7 @@ class ljpl_Trakt_Actions_Widget extends WP_Widget {
 		$title = apply_filters('widget_title', $instance['title'] );
 		$username = $instance['username'];
 		$apikey = $instance['apikey'];
-		$transientname = 'cache-' . $this->id;
+		$transientname = 'cache-ljpl-traktwidget' . $this->number;
 		if($instance['actionsAll'])
 			$actions = '/all';
 		else
@@ -108,7 +108,8 @@ class ljpl_Trakt_Actions_Widget extends WP_Widget {
 				// TODO: cache multiple streams
 				set_transient( $transientname, $out, 3600 ); // cache results for 1h
 			}
-			print '<pre>' . print_r($instance, 1) . "</pre>";
+			echo "<pre>" . print_r( $this, 1 ) . "</pre>";
+			print "Transient: $transientname";
 			print "<ul>";
 			
 			// simple check to avoid errors

@@ -22,6 +22,40 @@ class ljpl_Trakt_Actions_Widget extends WP_Widget {
 		}
 		return $number;
 	}
+	/**
+	 * @param $data array data row from json
+	 * @param $i int position on the list
+	 *
+	 */
+	private function print_rating( $data, $i ) {
+		if( $data['type'] == 'show' ) {
+			echo '<li><p class="title">TV Show: ' . $data['show']['title'] . '</p>';
+			if( $i == 0 ) {
+				echo '<img class="screen" src="'. $data['show']['images']['poster'] .'" />';
+			}						
+		} elseif ($data['type'] == 'movie' ) {			
+			echo '<p class="title">Movie: ' . $data['movie']['title'] . '</p>';
+			if( $i == 0 ) {
+				echo '<img class="screen" src="'. $data['movie']['images']['poster'] .'" />';
+			}	
+			
+		} elseif ($data['type'] == 'episode' ) {
+			echo '<p class="title">TV Show: ' . $data['show']['title'] . '<br />';
+			echo 'S' . $this->zerofill($data['episode']['season']) . 'E' . $this->zerofill( $data['episode']['episode'] ) . ' <em>' . $data['episode']['title'] . '</em></p>';
+			if( $i == 0 ) {
+				echo '<img class="screen" src="'. $data['episode']['images']['screen'] .'" />';
+			}	
+		}
+		
+		// -- ratings
+		if( $data['use_rating_advanced'] ) {
+			echo '<p>Rated: ' . $data['rating_advanced'] . '/10 ('. $data['rating'] .')</p>';
+		} else {
+			echo '<p>Rated: '. $data['rating'] .'</p>';			
+		}
+		echo '</li>';
+	}
+	
 	
 	function widget( $args, $instance ) {
 		
@@ -89,9 +123,10 @@ class ljpl_Trakt_Actions_Widget extends WP_Widget {
 			
 			// TODO: refactor $out
 			$out = get_transient( $transientname );
-			if( $out === false ) {
+			if( $out === false || 1 ) {
 			
 				$url = 'http://api.trakt.tv/activity/user/json/' . $apikey . '/' . $username . $types . $actions;
+				echo $url;
 				$result = wp_remote_get( $url, array( 'timeout' => 20 ) );
 				if( is_wp_error( $result) ) {
 					// print_r( $result );
@@ -118,68 +153,72 @@ class ljpl_Trakt_Actions_Widget extends WP_Widget {
 				
 				
 			for($i=0;$i<$maxActions;$i++) {
-				if(isset($out['activity'][$i]['show'])) { // obsługujemy serial
-				
-				if($out['activity'][$i]['action'] == 'seen') 
-					$episodeArr = $out['activity'][$i]['episodes'][0];
-				else 
-					$episodeArr = $out['activity'][$i]['episode'];
+				if( $out['activity'][$i]['action'] == 'rating' ) {
+					$this->print_rating($out['activity'][$i], $i);
+				} else {
+					if(isset($out['activity'][$i]['show'])) { // obsługujemy serial
 					
-				$season = $this->zerofill($episodeArr['season']);
-				$episode = $this->zerofill($episodeArr['episode']);
-					
-					if($i == 0) {
-						// pierwszy element listy - rozszerzone informacje
-						print "<li class=\"first\">";
-						print "<p class=\"title\">";
-						print "<a target =\"_blank\" href=\"" . $out['activity'][$i]['show']['url'] . "\">". $out['activity'][$i]['show']['title'] . "</a></p>";
-						print '<img class="screen" src="' . $episodeArr['images']['screen'] . '" />';
-						print "<p>S" . $season . "E" . $episode . " (<a target=\"_blank\" href=\"" . $episodeArr['url'] . "\"><em>" . $episodeArr['title'] ."</a></em>)</p>";
-						if(isset($ratings[$episodeArr['url']]))
-							print "<p>Rating: " . $ratings[$out['activity'][$i]['episodes'][0]['url']] . "</p>";
-						print "<div style=\"clear:right;\"></div>";
-					} else {
-						// kolejne elementy
-						print "<li>";	
-						if(isset($ratings[$episodeArr['url']])) {
-							print '<img src="' .   plugins_url("/" . $ratings[$episodeArr['url']] . '.png',__FILE__)   . '" style="float:left;" />';
-						}
-						print "<p class=\"title\">";
-						print "<a target =\"_blank\" href=\"" . $out['activity'][$i]['show']['url'] . "\">". $out['activity'][$i]['show']['title'] . "</a></p>";
-						print "<p>S" . $season . "E" . $episode . " (<a target=\"_blank\" href=\"" . $episodeArr['url'] . "\"><em>" . $episodeArr['title'] ."</a></em>)</p>";
+					if($out['activity'][$i]['action'] == 'seen') 
+						$episodeArr = $out['activity'][$i]['episodes'][0];
+					else 
+						$episodeArr = $out['activity'][$i]['episode'];
 						
+					$season = $this->zerofill($episodeArr['season']);
+					$episode = $this->zerofill($episodeArr['episode']);
+						
+						if($i == 0) {
+							// pierwszy element listy - rozszerzone informacje
+							print "<li class=\"first\">";
+							print "<p class=\"title\">";
+							print "<a target =\"_blank\" href=\"" . $out['activity'][$i]['show']['url'] . "\">". $out['activity'][$i]['show']['title'] . "</a></p>";
+							print '<img class="screen" src="' . $episodeArr['images']['screen'] . '" />';
+							print "<p>S" . $season . "E" . $episode . " (<a target=\"_blank\" href=\"" . $episodeArr['url'] . "\"><em>" . $episodeArr['title'] ."</a></em>)</p>";
+							if(isset($ratings[$episodeArr['url']]))
+								print "<p>Rating: " . $ratings[$out['activity'][$i]['episodes'][0]['url']] . "</p>";
+							print "<div style=\"clear:right;\"></div>";
+						} else {
+							// kolejne elementy
+							print "<li>";	
+							if(isset($ratings[$episodeArr['url']])) {
+								print '<img src="' .   plugins_url("/" . $ratings[$episodeArr['url']] . '.png',__FILE__)   . '" style="float:left;" />';
+							}
+							print "<p class=\"title\">";
+							print "<a target =\"_blank\" href=\"" . $out['activity'][$i]['show']['url'] . "\">". $out['activity'][$i]['show']['title'] . "</a></p>";
+							print "<p>S" . $season . "E" . $episode . " (<a target=\"_blank\" href=\"" . $episodeArr['url'] . "\"><em>" . $episodeArr['title'] ."</a></em>)</p>";
+							
+						}
+						print "</li>";
+	
+					} elseif(isset($out['activity'][$i]['movie'])) { // obsługujemy film
+	
+						if($i == 0) {
+							// pierwszy element
+							print '<li>';
+							if(isset($ratings[$out['activity'][$i]['movie']['url']]))
+								print '<img src="' .  plugins_url("/" . $ratings[$out['activity'][$i]['movie']['url']] . '.png',__FILE__)   . '" style="float:left;" />';
+							print '<p class="title"><a target="_blank" href="' . $out['activity'][$i]['movie']['url'] . '">' . $out['activity'][$i]['movie']['title'] . '</a></p>';
+							print '<img class="poster" src="' . $out['activity'][$i]['movie']['images']['poster'] . '" />';
+							print '<p>Year: ' . $out['activity'][$i]['movie']['year'];
+							if($out['activity'][$i]['movie']['trailer'])
+								print ', <a target="_blank" href="'.$out['activity'][$i]['movie']['trailer'].'">trailer</a>';
+							print "</p>";
+												
+							print "<div style=\"clear:right;\"></div>";
+						} else {
+							// kolejne elementy
+							print '<li>';
+							if(isset($ratings[$out['activity'][$i]['movie']['url']]))
+								print '<img src="' .  plugins_url("/" . $ratings[$out['activity'][$i]['movie']['url']] . '.png',__FILE__)   . '" style="float:left;" />';
+							print '<p class="title"><a target="_blank" href="' . $out['activity'][$i]['movie']['url'] . '">' . $out['activity'][$i]['movie']['title'] . '</a></p>';
+							print '<p>Year: ' . $out['activity'][$i]['movie']['year'];
+							if($out['activity'][$i]['movie']['trailer'])
+								print ', <a target="_blank" href="'.$out['activity'][$i]['movie']['trailer'].'">trailer</a>';
+							print "</p>";
+						}
+					
+						print '</li>';
+						//$debug = print_r($out['activity'][$i],1);				
 					}
-					print "</li>";
-
-				} elseif(isset($out['activity'][$i]['movie'])) { // obsługujemy film
-
-					if($i == 0) {
-						// pierwszy element
-						print '<li>';
-						if(isset($ratings[$out['activity'][$i]['movie']['url']]))
-							print '<img src="' .  plugins_url("/" . $ratings[$out['activity'][$i]['movie']['url']] . '.png',__FILE__)   . '" style="float:left;" />';
-						print '<p class="title"><a target="_blank" href="' . $out['activity'][$i]['movie']['url'] . '">' . $out['activity'][$i]['movie']['title'] . '</a></p>';
-						print '<img class="poster" src="' . $out['activity'][$i]['movie']['images']['poster'] . '" />';
-						print '<p>Year: ' . $out['activity'][$i]['movie']['year'];
-						if($out['activity'][$i]['movie']['trailer'])
-							print ', <a target="_blank" href="'.$out['activity'][$i]['movie']['trailer'].'">trailer</a>';
-						print "</p>";
-											
-						print "<div style=\"clear:right;\"></div>";
-					} else {
-						// kolejne elementy
-						print '<li>';
-						if(isset($ratings[$out['activity'][$i]['movie']['url']]))
-							print '<img src="' .  plugins_url("/" . $ratings[$out['activity'][$i]['movie']['url']] . '.png',__FILE__)   . '" style="float:left;" />';
-						print '<p class="title"><a target="_blank" href="' . $out['activity'][$i]['movie']['url'] . '">' . $out['activity'][$i]['movie']['title'] . '</a></p>';
-						print '<p>Year: ' . $out['activity'][$i]['movie']['year'];
-						if($out['activity'][$i]['movie']['trailer'])
-							print ', <a target="_blank" href="'.$out['activity'][$i]['movie']['trailer'].'">trailer</a>';
-						print "</p>";
-					}
-				
-					print '</li>';
-					//$debug = print_r($out['activity'][$i],1);				
 				}
 			}
 			print "</ul>";

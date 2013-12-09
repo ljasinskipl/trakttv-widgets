@@ -1,0 +1,14 @@
+.trakttv img {
+	float:right;
+	width: 150px;
+	vertical-align:top;
+}
+
+.trakttv li {
+	list-style-position:outside;
+}
+
+.trakttv p.title  {
+	margin-bottom:6px;
+	font-weight:bold;
+}

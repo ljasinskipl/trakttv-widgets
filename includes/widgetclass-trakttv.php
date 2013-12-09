@@ -14,7 +14,132 @@ class ljpl_Trakt_Actions_Widget extends WP_Widget {
 		/* Create the widget. */
 		$this->WP_Widget( 'ljpl-trakttv-actions-widget', 'TraktTV Actions Widget', $widget_ops, $control_ops );
 	}
-
+	
+	/**
+	 * print_show_poster
+	 * Displays TV show's poster image
+	 * @param $show array Array from TraktTV API
+	 * @since 1.4
+	 */
+	private function print_show_poster($show) {
+		echo '<img class="screen" src="'. $show['images']['poster'] .'" />';
+	}
+	
+	/**
+	 * print_movie_poster
+	 * Displays movie's poster image
+	 * @param $movie array Array from TraktTV API
+	 * @since 1.4
+	 */
+	private function print_movie_poster($movie) {
+		echo '<img class="screen" src="'. $movie['images']['poster'] .'" />';
+	}
+	
+	/**
+	 * print_episode_screen
+	 * Displays TV episode's screenshot image
+	 * @param $episode array from TraktTV API
+	 * @since 1.4
+	 */
+	private function print_episode_screen( $episode ) {
+		echo '<img class="screen" src="'. $episode['images']['screen'] .'" />';
+	}
+	
+	/**
+	 * print_movie_title
+	 * Displays formatted movie title
+	 * @param $episode array from TraktTV API
+	 * @since 1.4
+	 */
+	private function print_movie_title( $movie ) {
+		echo '<p class="title">
+			Movie: 
+			<a href="'. $movie['url'] . '" target="_blank">
+				' . $movie['title'] . '
+			</a>
+		</p>';
+	}
+	
+	/**
+	 * print_movie_header
+	 * Displays formated movie header
+	 * @param $movie array from TraktTV API
+	 * @param $i int counter
+	 * @since 1.4
+	 */
+	private function print_movie_header( $movie, $i ) {
+		$this->print_movie_title( $movie );
+		if( $i == 0 ) {
+			$this->print_movie_poster( $movie );
+		}			
+	}
+	
+	/**
+	 * print_show_title
+	 * Displays formatted tv show title
+	 * @param $show array from TraktTV API
+	 * @since 1.4
+	 */
+	private function print_show_title( $show ) {
+		echo 'TV Show: ' . 
+			'<a href="'. $show['url'] .'"target="_blank">'
+				. $show['title'] . 
+			'</a>';	
+	}
+	
+	/**
+	 * print_show_header
+	 * Displays formatted tv show header (used for single episode actions)
+	 * @param $show array from TraktTV API
+	 * @param $episode array from TraktTV API
+	 * @param $i int counter
+	 * @since 1.4
+	 */
+	private function print_show_header( $show, $episode, $i ) {
+		echo '<p class="title">';
+		$this->print_show_title( $show );
+		echo '<br />';
+		$this->print_episode_title( $episode );		
+		echo '</p>';
+		if( $i == 0 ) {
+			$this->print_episode_screen( $episode );
+		}		
+	}
+	
+	/**
+	 * print_episode_title
+	 * Displays formatted tv show's episode title
+	 * @param $episode array from TraktTV API
+	 * @since 1.4
+	 */
+	private function print_episode_title( $episode ) {
+		echo 
+			'S' . $this->zerofill( $episode['season'] ) . 
+			'E' . $this->zerofill( $episode['episode'] ) . 
+			' <a href="' . $episode['url'] . '"target="_blank">' . 
+				$episode['title'] .
+			'</a>';	
+	}
+	
+	/**
+	 * timestamp2human
+	 * Displays time of action converted from timestamp
+	 * @param $intro string intro text
+	 * @param $timestamp int UNIX timestamp
+	 * @since 1.4
+	 */
+	private function timestamp2human( $intro, $timestamp ) {
+		echo '<p>' . $intro . ' on ' . date_i18n( get_option('date_format'), $timestamp ) . '</p>';
+	}
+	
+	/**
+	 * zerofill
+	 * Fill number with leading zeros if it has to few digits
+	 * @param $number int number to fill
+	 * @param $positions int wanted number of digits
+	 * @return string 
+	 * @since 1.0
+	 */
 	private function zerofill($number, $positions=2) {
 		for($i=1;$i<$positions;$i++)	{
 			if($number < pow(10,$i))
@@ -22,45 +147,116 @@ class ljpl_Trakt_Actions_Widget extends WP_Widget {
 		}
 		return $number;
 	}
+	
 	/**
+	 * Echoes item for action 'rating'
 	 * @param $data array data row from json
 	 * @param $i int position on the list
-	 *
+	 * @since 1.4
 	 */
 	private function print_rating( $data, $i ) {
+		echo '<li>';
 		if( $data['type'] == 'show' ) {
-			echo '<li><p class="title">TV Show: ' . $data['show']['title'] . '</p>';
+			echo '<p class="title">';
+			$this->print_show_title( $data['show'] );
+			echo '</p>';
 			if( $i == 0 ) {
-				echo '<img class="screen" src="'. $data['show']['images']['poster'] .'" />';
+				$this->print_show_poster($data['show']);
 			}						
 		} elseif ($data['type'] == 'movie' ) {			
-			echo '<p class="title">Movie: ' . $data['movie']['title'] . '</p>';
-			if( $i == 0 ) {
-				echo '<img class="screen" src="'. $data['movie']['images']['poster'] .'" />';
-			}	
+			$this->print_movie_header( $data['movie'], $i );
 			
 		} elseif ($data['type'] == 'episode' ) {
-			echo '<p class="title">TV Show: ' . $data['show']['title'] . '<br />';
-			echo 'S' . $this->zerofill($data['episode']['season']) . 'E' . $this->zerofill( $data['episode']['episode'] ) . ' <em>' . $data['episode']['title'] . '</em></p>';
-			if( $i == 0 ) {
-				echo '<img class="screen" src="'. $data['episode']['images']['screen'] .'" />';
-			}	
+			$this->print_show_header( $data['show'], $data['episode'], $i );	
+		}
+		else {
+			return;
 		}
 		
 		// -- ratings
 		if( $data['use_rating_advanced'] ) {
-			echo '<p>Rated: ' . $data['rating_advanced'] . '/10 ('. $data['rating'] .')</p>';
+			$intro = '<p>Rated: ' . $data['rating_advanced'] . '/10 ('. $data['rating'] .')';
 		} else {
-			echo '<p>Rated: '. $data['rating'] .'</p>';			
+			$intro = '<p>Rated: '. $data['rating'] .'';			
 		}
+		$this->timestamp2human( $intro, $data['timestamp'] );
+		echo '</li>';
+	}
+
+	/**
+	 * Echoes item for action 'collection'
+	 * @param $data array data row from json
+	 * @param $i int position on the list
+	 * @since 1.4
+	 */
+	private function print_collection( $data, $i ) {
+		echo '<li>';
+		if( $data['type'] == 'episode') {
+			if( count ($data['episodes'] ) == 1 ) {
+				$this->print_show_header($data['show'], $data['episodes'][0], $i);					
+			} else {
+				echo '<p class="title">';
+				$this->print_show_title( $data['show'] );
+				echo '</p>';
+				if( $i == 0 ) {
+					$this->print_show_poster($data['show']);
+				}
+				echo '<ul>';
+				foreach ($data['episodes'] as $episode ) {
+					echo '<li>';
+					$this->print_episode_title( $episode );
+					echo '</li>';
+				}	
+				echo '</ul>';			
+			}
+			
+		} elseif ( $data['type'] == 'movie' ) {
+			$this->print_movie_title( $data['movie'] );
+			if( $i == 0 ) {
+				$this->print_movie_poster( $data['movie'] );
+			}			
+		} else {
+			return;
+		}
+		
+		$this->timestamp2human( 'Added to collection', $data['timestamp'] );
+		echo '</li>';
+	}
+
+	/**
+	 * Echoes item for actions 'scrobble', 'checkin', 'seen', 'watching'
+	 * @param $data array data row from json
+	 * @param $i int position on the list
+	 * @since 1.4
+	 */	
+	private function print_action( $data, $i ) {
+		echo '<li>';
+		if( $data['type'] == 'episode' ) {
+			$this->print_show_header($data['show'], $data['episode'], $i);
+		} elseif ($data['type'] == 'movie' ) {
+			$this->print_movie_header( $data['movie'], $i );
+		} else {
+			return;
+		}
+		switch ( $data['action'] ) {
+			case 'scrobble' :      $intro = 'Seen'; break;
+			case 'checkin' :       $intro = 'Seen'; break;
+			case 'seen' :          $intro = 'Marked as seen'; break;
+			case 'watching' :      $intro = 'Watching'; break;
+		}
+		$this->timestamp2human($intro, $data['timestamp']);
 		echo '</li>';
 	}
 	
-	
+	/**
+	 * Displays widget
+	 * @param $args array widget arguments
+	 * @param $instance array widget instance settings
+	 * @since 1.0
+	 */ 
 	function widget( $args, $instance ) {
 		
 		extract( $args );
-
 
 		/* User-selected settings. */
 		$title = apply_filters('widget_title', $instance['title'] );
@@ -87,64 +283,33 @@ class ljpl_Trakt_Actions_Widget extends WP_Widget {
 			echo $before_title . $title . $after_title;
 
 		/* Podłączamy się do API TraktTV */
-		if($username && $apikey) {
-			/* RATINGS BLOCK 
-			DONT UNCOMMENT BEFORE CACHING
-			
-			$ch = curl_init();
-			$url = 'http://api.trakt.tv/activity/user/json/' . $apikey . '/' . $username . $types . '/rating';
-			curl_setopt($ch, CURLOPT_URL, $url); 
-			curl_setopt ($ch, CURLOPT_RETURNTRANSFER, true);
-			$contents = curl_exec ($ch);
-
-			curl_close($ch); 
-
-				
-			$ratings = Array();
-			$ratingsTemp = json_decode($contents, TRUE);	
-			foreach($ratingsTemp['activity'] as $rating) {
-				$slug = "";
-				if(isset($rating['movie'])) {
-					$slug = 'movie';
-				} elseif(isset($rating['episode'])) {
-					$slug = 'episode';
-				}
-				
-				if($slug) {
-					$ratings[$rating[$slug]['url']] = $rating['rating'];
-				}
-			}
-			
-			// print ("<pre>" . print_r($ratings,1) . "</pre>");	// -- for debug purposes only	
-			*/
-			
+		if( $username && $apikey ) {
+						
 			// #################################################################
 			// ##### Get user's actions
 			
 			// TODO: refactor $out
 			$out = get_transient( $transientname );
-			if( $out === false || 1 ) {
+			
+			if( $out === false ) {
 			
 				$url = 'http://api.trakt.tv/activity/user/json/' . $apikey . '/' . $username . $types . $actions;
 				echo $url;
 				$result = wp_remote_get( $url, array( 'timeout' => 20 ) );
+				
 				if( is_wp_error( $result) ) {
-					// print_r( $result );
 					return; 
+					
 				}
-			
+				
 				if( $result['response']['code'] != 200 )
 					return;	// TODO: proper error handling
 				
 				$out = json_decode($result['body'], TRUE);
 				
 				// -- cache results for 1h
-				// TODO: time settable in settings panel
-				// TODO: cache multiple streams
-				set_transient( $transientname, $out, 3600 ); // cache results for 1h
+				set_transient( $transientname, $out, 3600 ); // TODO: time settable in settings panel
 			}
-//			echo "<pre>" . print_r( $this, 1 ) . "</pre>";
-//			print "Transient: $transientname";
 			print "<ul>";
 			
 			// simple check to avoid errors
@@ -155,86 +320,26 @@ class ljpl_Trakt_Actions_Widget extends WP_Widget {
 			for($i=0;$i<$maxActions;$i++) {
 				if( $out['activity'][$i]['action'] == 'rating' ) {
 					$this->print_rating($out['activity'][$i], $i);
+				} elseif ($out['activity'][$i]['action'] == 'collection' ) {
+					$this->print_collection($out['activity'][$i], $i);
 				} else {
-					if(isset($out['activity'][$i]['show'])) { // obsługujemy serial
-					
-					if($out['activity'][$i]['action'] == 'seen') 
-						$episodeArr = $out['activity'][$i]['episodes'][0];
-					else 
-						$episodeArr = $out['activity'][$i]['episode'];
-						
-					$season = $this->zerofill($episodeArr['season']);
-					$episode = $this->zerofill($episodeArr['episode']);
-						
-						if($i == 0) {
-							// pierwszy element listy - rozszerzone informacje
-							print "<li class=\"first\">";
-							print "<p class=\"title\">";
-							print "<a target =\"_blank\" href=\"" . $out['activity'][$i]['show']['url'] . "\">". $out['activity'][$i]['show']['title'] . "</a></p>";
-							print '<img class="screen" src="' . $episodeArr['images']['screen'] . '" />';
-							print "<p>S" . $season . "E" . $episode . " (<a target=\"_blank\" href=\"" . $episodeArr['url'] . "\"><em>" . $episodeArr['title'] ."</a></em>)</p>";
-							if(isset($ratings[$episodeArr['url']]))
-								print "<p>Rating: " . $ratings[$out['activity'][$i]['episodes'][0]['url']] . "</p>";
-							print "<div style=\"clear:right;\"></div>";
-						} else {
-							// kolejne elementy
-							print "<li>";	
-							if(isset($ratings[$episodeArr['url']])) {
-								print '<img src="' .   plugins_url("/" . $ratings[$episodeArr['url']] . '.png',__FILE__)   . '" style="float:left;" />';
-							}
-							print "<p class=\"title\">";
-							print "<a target =\"_blank\" href=\"" . $out['activity'][$i]['show']['url'] . "\">". $out['activity'][$i]['show']['title'] . "</a></p>";
-							print "<p>S" . $season . "E" . $episode . " (<a target=\"_blank\" href=\"" . $episodeArr['url'] . "\"><em>" . $episodeArr['title'] ."</a></em>)</p>";
-							
-						}
-						print "</li>";
-	
-					} elseif(isset($out['activity'][$i]['movie'])) { // obsługujemy film
-	
-						if($i == 0) {
-							// pierwszy element
-							print '<li>';
-							if(isset($ratings[$out['activity'][$i]['movie']['url']]))
-								print '<img src="' .  plugins_url("/" . $ratings[$out['activity'][$i]['movie']['url']] . '.png',__FILE__)   . '" style="float:left;" />';
-							print '<p class="title"><a target="_blank" href="' . $out['activity'][$i]['movie']['url'] . '">' . $out['activity'][$i]['movie']['title'] . '</a></p>';
-							print '<img class="poster" src="' . $out['activity'][$i]['movie']['images']['poster'] . '" />';
-							print '<p>Year: ' . $out['activity'][$i]['movie']['year'];
-							if($out['activity'][$i]['movie']['trailer'])
-								print ', <a target="_blank" href="'.$out['activity'][$i]['movie']['trailer'].'">trailer</a>';
-							print "</p>";
-												
-							print "<div style=\"clear:right;\"></div>";
-						} else {
-							// kolejne elementy
-							print '<li>';
-							if(isset($ratings[$out['activity'][$i]['movie']['url']]))
-								print '<img src="' .  plugins_url("/" . $ratings[$out['activity'][$i]['movie']['url']] . '.png',__FILE__)   . '" style="float:left;" />';
-							print '<p class="title"><a target="_blank" href="' . $out['activity'][$i]['movie']['url'] . '">' . $out['activity'][$i]['movie']['title'] . '</a></p>';
-							print '<p>Year: ' . $out['activity'][$i]['movie']['year'];
-							if($out['activity'][$i]['movie']['trailer'])
-								print ', <a target="_blank" href="'.$out['activity'][$i]['movie']['trailer'].'">trailer</a>';
-							print "</p>";
-						}
-					
-						print '</li>';
-						//$debug = print_r($out['activity'][$i],1);				
-					}
+					$this->print_action( $out['activity'][$i], $i );
 				}
 			}
-			print "</ul>";
-
-			$debug = print_r($out['activity'],1);	
-			$fpath = plugin_basename(__FILE__) . '/debug.txt';
-			$file = fopen('debug.txt','w');
-			fwrite($file, $debug);
-			fclose($file);
-			
+			print "</ul>";			
 		}
 
 		/* After widget (defined by themes). */
 		echo $after_widget;
 	}
 	
+	/**
+	 * update
+	 * Updates instance settings
+	 * @param $new_instance array new settings
+	 * @param $old_instance array old_settings
+	 * @since 1.0
+	 */
 	function update( $new_instance, $old_instance ) {
 		
 		$instance = $old_instance;
@@ -258,35 +363,10 @@ class ljpl_Trakt_Actions_Widget extends WP_Widget {
 	}
 	
 	/**
-	  * refreshCache()
-	  * Connects to TraktTV API, downloads contents and stores them in local cache 
-	  * NOT IMPLEMENTED YET
-	  */
-	function refreshCache() {
-		global $wbdb;	
-		$table_name = $wpdb->prefix . "trakttvcache";
-		$sql = "truncate table `{$table_name}`";
-
-		$ch = curl_init();
-		$url = 'http://api.trakt.tv/activity/user/json/' . $apikey . '/' . $username . '/all/seen';
-		curl_setopt($ch, CURLOPT_URL, $url); 
-		curl_setopt ($ch, CURLOPT_RETURNTRANSFER, true);
-		$contents = curl_exec ($ch);
-		curl_close($ch); 
-		$out = json_decode($contents, TRUE);
-
-		foreach($out['activity'] as $record) {
-			// jeżeli obrabiamy show
-			if(isset($record['show'])) {
-			}
-			
-		}
-
-	}
-	/**
 	  * form()
 	  * Displays form with options for widget instance
 	  * @param mixed $instance Widget instance
+	  * @since 1.0 
 	  */
 	function form( $instance ) {
 
@@ -351,4 +431,3 @@ class ljpl_Trakt_Actions_Widget extends WP_Widget {
 	<?php
 	}
 }
-

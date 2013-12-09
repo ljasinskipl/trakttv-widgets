@@ -4,7 +4,7 @@ Donate link: http://www.ljasinski.pl/donate
 Tags: widget, trakttv, tv shows, movies
 Requires at least: 2.0.2
 Tested up to: 3.7.1
-Stable tag: 1.3.1
+Stable tag: 1.4
 Author URI: http://www.ljasinski.pl
 Plugin URI: http://www.ljasinski.pl/en/category/wordpress-en/plugins/trakttv-wordpress-widget-en/
 License: GPLv2 or later
@@ -25,11 +25,11 @@ Just unzip to '/wp-content/plugins/' and activate
 
 = I've found a bug =
 
-Great. Let me know :)
+Great. Let me know :) Leave me a comment on http://www.ljasinski.pl/en/category/wordpress-en/plugins/trakttv-wordpress-widget-en/ (fastest way) or use support forum
 
 = I have two widgets and they both show the same results =
 
-I know. As written in the changelog, that's known limitation of this version.
+That's a bug.
 
 == Screenshots ==
 
@@ -38,6 +38,11 @@ I know. As written in the changelog, that's known limitation of this version.
 2. Widget configuration
 
 == Changelog ==
+
+= 1.4 =
+* More code rewrites
+* BUGFIX for actions: collection and rating
+* Code documentation
 
 = 1.3.1 =
 

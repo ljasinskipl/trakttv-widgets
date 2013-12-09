@@ -108,8 +108,8 @@ class ljpl_Trakt_Actions_Widget extends WP_Widget {
 				// TODO: cache multiple streams
 				set_transient( $transientname, $out, 3600 ); // cache results for 1h
 			}
-			echo "<pre>" . print_r( $this, 1 ) . "</pre>";
-			print "Transient: $transientname";
+//			echo "<pre>" . print_r( $this, 1 ) . "</pre>";
+//			print "Transient: $transientname";
 			print "<ul>";
 			
 			// simple check to avoid errors

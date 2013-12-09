@@ -3,7 +3,7 @@
 Plugin Name: Trakt.tv Wordpress Plugin
 Plugin URI: http://www.ljasinski.pl/wordpress-plugins/trakttv-wordpress-widget/
 Description: Gets your last seen and rated movies and episodes from the service
-Version: 1.3
+Version: 1.3.1
 Author: Studio Multimedialne ljasinski.pl
 Author URI: http://www.ljasinski.pl
 License: GPL2

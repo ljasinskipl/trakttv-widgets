@@ -4,11 +4,11 @@ Donate link: http://www.ljasinski.pl/donate
 Tags: widget, trakttv, tv shows, movies
 Requires at least: 2.0.2
 Tested up to: 3.7.1
-Stable tag: 1.3
-License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Stable tag: 1.3.1
 Author URI: http://www.ljasinski.pl
 Plugin URI: http://www.ljasinski.pl/en/category/wordpress-en/plugins/trakttv-wordpress-widget-en/
+License: GPLv2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Show what you watch to your visitors. Widget, that shows your last watched movies or TV show episodes from trakt.tv
 
@@ -38,6 +38,10 @@ I know. As written in the changelog, that's known limitation of this version.
 2. Widget configuration
 
 == Changelog ==
+
+= 1.3.1 =
+
+* Hide debug info from plain sight
 
 = 1.3 =
 

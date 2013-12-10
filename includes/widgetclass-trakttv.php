@@ -294,7 +294,6 @@ class ljpl_Trakt_Actions_Widget extends WP_Widget {
 			if( $out === false ) {
 			
 				$url = 'http://api.trakt.tv/activity/user/json/' . $apikey . '/' . $username . $types . $actions;
-				echo $url;
 				$result = wp_remote_get( $url, array( 'timeout' => 20 ) );
 				
 				if( is_wp_error( $result) ) {

@@ -4,7 +4,7 @@ Donate link: http://www.ljasinski.pl/donate
 Tags: widget, trakttv, tv shows, movies
 Requires at least: 2.0.2
 Tested up to: 3.7.1
-Stable tag: 1.4
+Stable tag: 1.4.1
 Author URI: http://www.ljasinski.pl
 Plugin URI: http://www.ljasinski.pl/en/category/wordpress-en/plugins/trakttv-wordpress-widget-en/
 License: GPLv2 or later
@@ -38,6 +38,9 @@ That's a bug.
 2. Widget configuration
 
 == Changelog ==
+
+= 1.4.1 = 
+* Hide debug info again
 
 = 1.4 =
 * More code rewrites
